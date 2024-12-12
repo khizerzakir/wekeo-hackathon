@@ -29,9 +29,9 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS attributes (
       id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
       position_id uuid NOT NULL,
-      attribute char(128),
+      attribute text,
       value decimal(10, 5),
-      description char(2048),
+      description text,
       CONSTRAINT fk_position
         FOREIGN KEY (position_id)
         REFERENCES position (id)
@@ -41,10 +41,14 @@ def create_tables():
 
   try:
     config = load_db_config()
+
     with psycopg2.connect(**config) as conn:
       with conn.cursor() as cur:
         for command in commands:
-          cur.execute(command) 
+          cur.execute(command)
+        
+        conn.commit()
+
         # if we already have drops in the database skip initial 
         # drops creation
         drops = get_drops() 
@@ -59,6 +63,9 @@ def create_tables():
         cur.execute(initial_data_command, (15.20, 162.45, 0.1))
         cur.execute(initial_data_command, (-36.55, -127.74, 0.1))
         cur.execute(initial_data_command, (33.32, -46.35, 0.1))
+
+        conn.commit()
+
   except (psycopg2.DatabaseError, Exception) as error:
     print(error)
 
@@ -76,7 +83,7 @@ def get_drops():
         cur.execute(command)
         # convert query result into numpy structured array to
         # make it easy to access attributes by their name
-        return np.array(
+        result = np.array(
           cur.fetchall(), 
           dtype = np.dtype(
             [
@@ -87,6 +94,7 @@ def get_drops():
             ]
           )
         )
+        return result;
   except (psycopg2.DatabaseError, Exception) as error:
     print(error)
 
@@ -120,6 +128,7 @@ def add_position_attribute(position_id, attribute, value, description):
     with psycopg2.connect(**config) as conn:
       with conn.cursor() as cur:
         cur.execute(command, (position_id, attribute, value, description));
-        return cur.fetchone()[0];
+        result = cur.fetchone()[0];
+        return result;
   except (psycopg2.DatabaseError, Exception) as error:
     print(error)
