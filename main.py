@@ -37,6 +37,8 @@ def main():
     t = get_dataset("cmems_mod_glo_phy_anfc_0.083deg_P1D-m", drop["lon"], drop["lat"], drop["depth"], ["tob"])  # Temperature [degree C]
     p = get_dataset("cmems_mod_glo_phy_anfc_0.083deg_P1D-m", drop["lon"], drop["lat"], drop["depth"], ["pbo"])  # Pressure [dbar]
     s = get_dataset("cmems_mod_glo_phy_anfc_0.083deg_P1D-m", drop["lon"], drop["lat"], drop["depth"], ["sob"])  # Salinity [parts per thousand or 10^-3]
+    h = get_dataset("cmems_obs-wave_glo_phy-swh_nrt_multi-l4-2deg_P1D-i", drop["lon"], drop["lat"], drop["depth"], ["VAVH_INST"]) # [m]
+    c = get_dataset("cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m", drop["lon"], drop["lat"], drop["depth"], ["chl"]) # [mg/m3]
 
     # uo horizontal speed component
     # vo horizontal speed component
@@ -48,6 +50,9 @@ def main():
     temperature = float(t.tob.sel(latitude=drop["lat"], longitude=drop["lon"], depth=drop["depth"], time=date.today(), method="nearest"))
     pressure = float(p.pbo.sel(latitude=drop["lat"], longitude=drop["lon"], depth=drop["depth"], time=date.today(), method="nearest"))
     salinity = float(s.sob.sel(latitude=drop["lat"], longitude=drop["lon"], depth=drop["depth"], time=date.today(), method="nearest"))
+    height = float(h.VAVH_INST.sel(latitude=drop["lat"], longitude=drop["lon"], depth=drop["depth"], time=date.today(), method="nearest"))
+    chlorophyll = float(c.chl.sel(latitude=drop["lat"], longitude=drop["lon"], depth=drop["depth"], time=date.today(), method="nearest"))
+
 
     # calculating horizontal distance and direction in
     # order to calculate next geo point of the drop
@@ -75,6 +80,8 @@ def main():
     add_position_attribute(position_id, 'temperature', temperature, 'Temperature at this position of the drop')
     add_position_attribute(position_id, 'pressure', pressure, 'Pressure at this position of the drop')
     add_position_attribute(position_id, 'salinity', salinity, 'Salinity at this position of the drop')
+    add_position_attribute(position_id, 'height', height, 'Instant Significant Wave Height at this position of the drop')
+    add_position_attribute(position_id, 'salinity', chlorophyll, 'Mass concentration of chlorophyll-a at this position of the drop')
 
 if __name__ == '__main__':
   main()
